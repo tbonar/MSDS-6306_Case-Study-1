@@ -22,6 +22,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(dplyr)
 library(maps)
+library(mapproj)
+library(stringr)
 ```
 
 ## Global Variable Setup
@@ -35,18 +37,34 @@ beers = read.csv("Beers.csv")
 
 ### 1.   How many breweries are present in each state?
 ```{r}
-# count each occurence of each state
-breweriesMapData = count(filter(breweries,!grepl('DC', State)), State)
+# Data tidying
+## Remove DC as its not a state but capitol
+breweriesStates = filter(breweries,!grepl('DC', State)) 
+## Trim whitespace from State column due to leading space
+breweriesStates$State = str_replace_all(breweriesStates$State, "(\\s+)", "")
 
-# Rename "n" column to "Total"
-colnames(breweriesMapData)[2] = "Total"
-breweriesMapData
+# Data Transformation
+## Create data frame with State name and abbreviation
+stateLookup = data.frame(abb = state.abb, stateName = state.name)
 
-# Create data frame with State name and abbreviation
-stateLookup = data.frame(abbreviation = state.abb, State = state.name)
+## Merge stateLookup with breweriesMapData
+breweriesStates2 = merge(breweriesStates,stateLookup,by.x="State",by.y="abb")
 
-# Map state to
+## count each occurrence of breweries in each state
+breweriesMapData = count(breweriesStates2,stateName)
+## remap columns for future merge of states and map
+colnames(breweriesMapData) = c("region","Breweries")
+breweriesMapData$region <- tolower(breweriesMapData$region)
+
+## Create merge between states lat/long and breweries map data
 states <- map_data("state")
+map.df <- merge(states, breweriesMapData, by="region", all.x=T)
+map.df <- map.df[order(map.df$order),]
+
+ggplot(map.df, aes(x=long,y=lat,group=group))+
+  geom_polygon(aes(fill=Breweries))+
+  geom_path()+ 
+  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+ggtitle("Breweries by State")+coord_map()
 ```
 
 ### 2.   Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
