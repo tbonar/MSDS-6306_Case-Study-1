@@ -121,6 +121,12 @@ ggplot(medianABVbyState, aes(x=State,y=ABV)) +
 ```
 
 ### 5.   Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
+```{r}
+# find max of ABV, then show ABV level and State from the row
+beerAndBreweries2[which.max(beerAndBreweries2$ABV),c(4,10)]
+# find max of IBU, then show IBU and State from the row
+beerAndBreweries2[which.max(beerAndBreweries2$IBU),c(5,10)]
+```
 
 ### 6.   Comment on the summary statistics and distribution of the ABV variable.
 
