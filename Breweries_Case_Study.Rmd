@@ -129,6 +129,25 @@ beerAndBreweries2[which.max(beerAndBreweries2$IBU),c(5,10)]
 ```
 
 ### 6.   Comment on the summary statistics and distribution of the ABV variable.
+```{r}
+summary(beerAndBreweries2$ABV)
+
+# Compute the number of breaks by classes for histogram
+## range = min is 0.027 and max is 0.125
+## nclass.FD computes the number of classes for a histogram
+breaks <- pretty(range(beerAndBreweries2$ABV), n = nclass.FD(beerAndBreweries2$ABV), min.n = 1)
+
+# Compute binwidth for histogram based on suggested number of classes within the range of ABV
+## (e.g. 0.03-0.025 = 0.005)
+bwidth <- breaks[2]-breaks[1]
+
+ggplot(beerAndBreweries2, aes(ABV)) +
+  geom_histogram(fill = "#f28e1c", color="brown", binwidth = bwidth) +
+  labs(title="Distribution of Alcohol by Volume") +
+  xlab("Alcohol by Volume (ABV)") +
+  ylab("Number of Beers")
+
+```
 
 ### 7.   Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
 ```{r}
