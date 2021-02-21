@@ -69,6 +69,16 @@ ggplot(map.df, aes(x=long,y=lat,group=group))+
 ```
 
 ### 2.   Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
+```{r}
+beerAndBreweries = merge(beers, breweries, by.x="Brewery_id", by.y="Brew_ID")
+
+# Remap columns named "Name" to be more descriptive/ubiquitous 
+colnames(beerAndBreweries)[2] = "Beer_Name"
+colnames(beerAndBreweries)[8] = "Brewery_Name"
+
+head(beerAndBreweries)
+tail(beerAndBreweries)
+```
 
 ### 3.   Address the missing values in each column.
 
