@@ -1,0 +1,113 @@
+---
+title: "Case Study 1"
+author: "Domicia Herring & Taylor Bonar"
+date: "2/20/2021"
+output: html_document
+---
+
+
+
+## Introduction
+### a.	The introduction needs to be written as if you are presenting the work to the CEO and CFO of Budweiser (your client) and that they only have had one class in statistics.  If it sounds like a student presentation, that is not acceptable.  You may assume that the CEO and CFO gave you the data and gave you the directive to report any interesting finding that you may uncover through your analysis.
+
+### b.	Briefly explain the purpose of the code. The explanations should appear as a sentence or two before or after the code chunk. Even though you will not be hiding the code chunks (so that I can see the code), you need to assume that the client can’t see them.
+## Libraries & Package Setup
+```{r}
+# Uncomment installs if you have not downloaded packages before
+#install.packages("dplyr")
+# Load APIs
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(mapproj)
+library(stringr)
+```
+
+## Global Variable Setup
+```{r}
+# Importing input data
+breweries <- read.csv(file.choose(), header = TRUE)
+beers <- read.csv(file.choose(), header = TRUE)
+
+#See dataframes
+breweries
+beers
+# Cleaning Data
+breweries$State <- str_replace_all(breweries$State, "(\\s+)", "")
+
+## Analysis
+
+### 1.   How many breweries are present in each state?
+
+# Data tidying
+## Remove DC as its not a state but capitol
+breweriesStates <- filter(breweries,!grepl('DC', State))
+
+# Data Transformation
+## Create data frame with State name and abbreviation
+stateLookup = data.frame(abb = state.abb, stateName = state.name)
+
+## Merge stateLookup with breweriesMapData
+breweriesStates2 = merge(breweriesStates,stateLookup,by.x="State",by.y="abb")
+
+## count each occurrence of breweries in each state
+breweriesMapData = count(breweriesStates2,stateName)
+## remap columns for future merge of states and map
+colnames(breweriesMapData) = c("region","Breweries")
+breweriesMapData$region <- tolower(breweriesMapData$region)
+## Create merge between states lat/long and breweries map data
+states <- map_data("state")
+map.df <- merge(states, breweriesMapData, by="region", all.x=T)
+map.df <- map.df[order(map.df$order),]
+ggplot(map.df, aes(x=long,y=lat,group=group))+
+  geom_polygon(aes(fill=Breweries))+
+  geom_path()+ 
+  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+ggtitle("Breweries by State")+coord_map()
+```
+
+### 2.   Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
+```{r}
+beerAndBreweries = merge(beers, breweries, by.x="Brewery_id", by.y="Brew_ID")
+# Remap columns named "Name" to be more descriptive/ubiquitous 
+colnames(beerAndBreweries)[2] = "Beer_Name"
+colnames(beerAndBreweries)[8] = "Brewery_Name"
+head(beerAndBreweries)
+tail(beerAndBreweries)
+```
+
+### 3.   Address the missing values in each column.
+#Remove rows with na values
+beerAndBreweries2 <- na.omit(beerAndBreweries) 
+beerAndBreweries2
+
+### 4.   Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+#Arrange to see in desc order by ABV
+beerAndBreweries2 %>% group_by(State) %>% summarize(medianABV = median(ABV), count = n()) %>% arrange(desc(medianABV)) %>% print()
+#Arrange to see in order by IBU
+beerAndBreweries2 %>% group_by(State) %>% summarize(medianIBU = median(IBU), count = n()) %>% arrange(desc(medianIBU)) %>% print()
+
+#Bar Chart to visualize ABV by state
+beerAndBreweries2 %>% group_by(State) %>% summarize(medianABV = median(ABV), count = n()) %>% ggplot(aes(x = State, y = medianABV)) + geom_col()
+#Bar Chart to visualize IBU by state
+beerAndBreweries2 %>% group_by(State) %>% summarize(medianIBU = median(IBU), count = n()) %>% ggplot(aes(x = State, y = medianIBU)) + geom_col()
+
+### 5.   Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
+#Arrange to see in desc order by ABV
+beerAndBreweries2 %>% group_by(State) %>% summarize(maxABV = max(ABV), count = n()) %>% arrange(desc(maxABV)) %>% print(n = 1)
+#Arrange to see in order by IBU
+beerAndBreweries2 %>% group_by(State) %>% summarize(maxIBU = max(IBU), count = n()) %>% arrange(desc(maxIBU)) %>% print(n = 1)
+### 6.   Comment on the summary statistics and distribution of the ABV variable.
+summary(beerAndBreweries2$ABV)
+)
+### 7.   Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
+beerAndBreweries2 %>% ggplot(aes(x=ABV, y=IBU)) + geom_point(colour = "red") + ggtitle("ABV vs. IBU") +
+  xlab("ABV") + ylab("IBU")
+### 8.  Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually.
+
+#Filter for all styles that contain 'Ale' and create a new dataframe.
+Ale <- beerAndBreweries2 %>% select(Style,ABV,IBU) %>%filter(stringr::str_detect(Style, 'Ale')) 
+#Filter for all styles that contain 'India Pale Ale' and create a new dataframe.
+IndiaAle <- Ale %>%filter(stringr::str_detect(Style, 'India Pale Ale')) 
+
+
+### 9. Knock their socks off!  Find one other useful inference from the data that you feel Budweiser may be able to find value in.  You must convince them why it is important and back up your conviction with appropriate statistical evidence. 
