@@ -95,6 +95,30 @@ summary(beerAndBreweries2)
 ```
 
 ### 4.   Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+```{r}
+# Calculate median of ABV or IBU by state grouping
+medianABVbyState = aggregate(beerAndBreweries2$ABV,
+          list(beerAndBreweries2$State),
+          median)
+medianIBUbyState = aggregate(beerAndBreweries2$IBU,
+          list(beerAndBreweries2$State),
+          median)
+
+# Remap column names to be more descriptive
+colnames(medianABVbyState) = c("State", "ABV")
+colnames(medianIBUbyState) = c("State", "IBU")
+
+
+ggplot(medianABVbyState, aes(x=State,y=ABV)) + 
+  geom_col(fill = "#f28e1c") + 
+  labs(title = "Median Alcohol by Volume (ABV) for Each State") +
+  theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
+
+ggplot(medianABVbyState, aes(x=State,y=ABV)) + 
+  geom_col(fill = "#f28e1c") + 
+  labs(title = "Median International Bitterness Units (IBU) for Each State") +
+  theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
+```
 
 ### 5.   Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
 
