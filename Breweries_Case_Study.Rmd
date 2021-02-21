@@ -81,6 +81,18 @@ tail(beerAndBreweries)
 ```
 
 ### 3.   Address the missing values in each column.
+#### Relies on 2
+```{r}
+# Observe summary of data, only IBU and ABV contains NAs
+summary(beerAndBreweries)
+
+# We'll drop beers from the merged data that do not contain a value (i.e. NA)
+library(tidyr)
+beerAndBreweries2 = beerAndBreweries %>% drop_na(IBU, ABV)
+
+# Observe data contains no NA values
+summary(beerAndBreweries2)
+```
 
 ### 4.   Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
 
