@@ -131,6 +131,14 @@ beerAndBreweries2[which.max(beerAndBreweries2$IBU),c(5,10)]
 ### 6.   Comment on the summary statistics and distribution of the ABV variable.
 
 ### 7.   Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
+```{r}
+# Overall scatterplot of all beers
+ggplot(beerAndBreweries2, aes(x=IBU, y=ABV)) +
+  geom_point(color = "#f28e1c", shape = "diamond", size = 1.5) +
+  geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs")) +
+  labs(title = "Relationship Between IBU and ABV", 
+       subtitle = "An Upward Trend")
+```
 
 ### 8.  Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually.
 
