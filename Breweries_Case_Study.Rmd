@@ -109,7 +109,7 @@ colnames(medianABVbyState) = c("State", "ABV")
 colnames(medianIBUbyState) = c("State", "IBU")
 
 ggplot(medianABVbyState, aes(x=State,y=ABV)) + 
-  geom_col(fill = "#f28e1c") + 
+  geom_col(fill = "#f28e1c") +
   labs(title = "Median Alcohol by Volume (ABV) for Each State") +
   theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
 
@@ -152,10 +152,10 @@ ggplot(beerAndBreweries2, aes(ABV)) +
 ### 7.   Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
 ```{r}
 # Overall scatterplot of all beers
-ggplot(beerAndBreweries2, aes(x=IBU, y=ABV)) +
+ggplot(beerAndBreweries2, aes(x=ABV, y=IBU)) +
   geom_point(color = "#f28e1c", shape = "diamond", size = 1.5) +
   geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs")) +
-  labs(title = "Relationship Between IBU and ABV", 
+  labs(title = "Relationship Between ABV and IBU", 
        subtitle = "An Upward Trend")
 ```
 
