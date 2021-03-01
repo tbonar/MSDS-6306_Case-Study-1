@@ -1,7 +1,7 @@
 ---
-title: "Case Study 1"
+title: "Case Study 1: EDA to Create a new Beer for U.S. Craft Enthusiasts"
 author: "Domicia Herring & Taylor Bonar"
-date: "2/20/2021"
+date: "2/28/2021"
 output: html_document
 ---
 
@@ -15,30 +15,28 @@ knitr::opts_chunk$set(echo = TRUE)
 ### b.	Briefly explain the purpose of the code. The explanations should appear as a sentence or two before or after the code chunk. Even though you will not be hiding the code chunks (so that I can see the code), you need to assume that the client can’t see them.
 ## Libraries & Package Setup
 ```{r}
-# Uncomment installs if you have not downloaded packages before
-#install.packages("dplyr")
-
 # Load APIs
 library(ggplot2)
 library(dplyr)
 library(maps)
 library(mapproj)
 library(stringr)
+library(tidyr)
 ```
 
-## Global Variable Setup
+## Global Variable Setup & Cleanup
 ```{r}
 # Importing input data
 breweries = read.csv("Breweries.csv")
 beers = read.csv("Beers.csv")
 
-# Cleaning Data
+# Cleaning Data of invalid beginning space
 breweries$State <- str_replace_all(breweries$State, "(\\s+)", "")
 ```
 
 ## Analysis
 
-### 1.   How many breweries are present in each state?
+### How many breweries are present in each state?
 ```{r}
 # Data tidying
 ## Remove DC as its not a state but capitol
@@ -62,6 +60,7 @@ states <- map_data("state")
 map.df <- merge(states, breweriesMapData, by="region", all.x=T)
 map.df <- map.df[order(map.df$order),]
 
+## Create U.S. heat map to visualize states breweries count
 ggplot(map.df, aes(x=long,y=lat,group=group))+
   geom_polygon(aes(fill=Breweries))+
   geom_path()+ 
@@ -70,31 +69,34 @@ ggplot(map.df, aes(x=long,y=lat,group=group))+
 
 ### 2.   Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
 ```{r}
+# Join beer and breweries by common brewery identifier
 beerAndBreweries = merge(beers, breweries, by.x="Brewery_id", by.y="Brew_ID")
 
 # Remap columns named "Name" to be more descriptive/ubiquitous 
 colnames(beerAndBreweries)[2] = "Beer_Name"
 colnames(beerAndBreweries)[8] = "Brewery_Name"
 
+# Show first six rows
 head(beerAndBreweries)
+# Show last six rows
 tail(beerAndBreweries)
 ```
 
-### 3.   Address the missing values in each column.
-#### Relies on 2
+### For metrics and later data analysis, beers with missing IBUs and ABV were removed for the below reasons.
+#### International bitterness units (IBUs) may not be included for all beers as some are not geared for their bitter flavors (e.g. lagers), but rather, IBU tends to be used as a quality control metric. IBUs tend not to be centered on marketing to impact a consumer's experience, but are simply there to satisfy some curiosities.
+#### Alcohol by Volume (ABV) are not always printed, or rather required, to be displayed on beers by federal regulations. Instead, states regulate the advertisment of alcohol contents after the a unanimous vote in the Rubin vs Coors Brewing Co. 154 U.S.476 (1995). This court case argued against a 1935 decision ban on listing alcohol content to prevent "brewing wars".
 ```{r}
 # Observe summary of data, only IBU and ABV contains NAs
 summary(beerAndBreweries)
 
 # We'll drop beers from the merged data that do not contain a value (i.e. NA)
-library(tidyr)
 beerAndBreweries2 = beerAndBreweries %>% drop_na(IBU, ABV)
 
 # Observe data contains no NA values
 summary(beerAndBreweries2)
 ```
 
-### 4.   Compute the median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+### Exploring the median alcohol content and international bitterness unit for each state.
 ```{r}
 # Calculate median of ABV or IBU by state grouping
 medianABVbyState = aggregate(beerAndBreweries2$ABV,
@@ -108,6 +110,7 @@ medianIBUbyState = aggregate(beerAndBreweries2$IBU,
 colnames(medianABVbyState) = c("State", "ABV")
 colnames(medianIBUbyState) = c("State", "IBU")
 
+# TODO: Add better visualization, too many states creates clutter and can overwhelm data visualization
 ggplot(medianABVbyState, aes(x=State,y=ABV)) + 
   geom_col(fill = "#f28e1c") +
   labs(title = "Median Alcohol by Volume (ABV) for Each State") +
@@ -119,16 +122,22 @@ ggplot(medianIBUbyState, aes(x=State,y=IBU)) +
   theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
 ```
 
-### 5.   Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
+### Which state has the maximum alcoholic (ABV) beer? Which state has the most bitter (IBU) beer?
 ```{r}
+#Arrange to see in desc order by ABV
+beerAndBreweries2 %>% group_by(State) %>% summarize(maxABV = max(ABV), count = n()) %>% arrange(desc(maxABV)) %>% print(n = 1)
+#Arrange to see in order by IBU
+beerAndBreweries2 %>% group_by(State) %>% summarize(maxIBU = max(IBU), count = n()) %>% arrange(desc(maxIBU)) %>% print(n = 1)
+
 # find max of ABV, then show ABV level and State from the row
 beerAndBreweries2[which.max(beerAndBreweries2$ABV),c(4,10)]
 # find max of IBU, then show IBU and State from the row
 beerAndBreweries2[which.max(beerAndBreweries2$IBU),c(5,10)]
 ```
 
-### 6.   Comment on the summary statistics and distribution of the ABV variable.
+### Summary statistics and distribution of the ABV variable.
 ```{r}
+# Create initial summary of ABV content to gauge initial data metrics
 summary(beerAndBreweries2$ABV)
 
 # Compute the number of breaks by classes for histogram
@@ -140,6 +149,7 @@ breaks <- pretty(range(beerAndBreweries2$ABV), n = nclass.FD(beerAndBreweries2$A
 ## (e.g. 0.03-0.025 = 0.005)
 bwidth <- breaks[2]-breaks[1]
 
+# Create histogram with spaced bins of ABV vs. number of beers
 ggplot(beerAndBreweries2, aes(ABV)) +
   geom_histogram(fill = "#f28e1c", color="brown", binwidth = bwidth) +
   geom_density(alpha=.2, fill="blue") +
@@ -147,20 +157,35 @@ ggplot(beerAndBreweries2, aes(ABV)) +
   xlab("Alcohol by Volume (ABV)") +
   ylab("Number of Beers")
 
+## TODO: Comment on statistics/distribution of ABV variable
+
 ```
 
-### 7.   Is there an apparent relationship between the bitterness of the beer and its alcoholic content? Draw a scatter plot.  Make your best judgment of a relationship and EXPLAIN your answer.
+### Is there an apparent relationship between the bitterness of the beer and its alcoholic content?
 ```{r}
-# Overall scatterplot of all beers
+# Create overall scatterplot to observe any clustering effect
+beerAndBreweries2 %>% ggplot(aes(x=ABV, y=IBU)) + geom_point(colour = "red") + ggtitle("ABV vs. IBU") +
+  xlab("ABV") + ylab("IBU")
+
+# Create second overall scatterplot with trend line to observe relationship
 ggplot(beerAndBreweries2, aes(x=ABV, y=IBU)) +
   geom_point(color = "#f28e1c", shape = "diamond", size = 1.5) +
   geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs")) +
   labs(title = "Relationship Between ABV and IBU", 
        subtitle = "An Upward Trend")
+
+## TODO: Comment on relationship and elaborate
 ```
 
-### 8.  Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually.
+### Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually.
+```{r}
+#Filter for all styles that contain 'Ale' and create a new dataframe.
+Ales <- beerAndBreweries2 %>% select(Style,ABV,IBU) %>%filter(stringr::str_detect(Style, 'Ale')) 
+
+#Filter for all styles that contain 'India Pale Ale' and create a new dataframe.
+IndiaAles <- Ale %>%filter(stringr::str_detect(Style, 'India Pale Ale')) 
+```
 
 #### In addition, while you have decided to use KNN to investigate this relationship (KNN is required) you may also feel free to supplement your response to this question with any other methods or techniques you have learned.  Creativity and alternative solutions are always encouraged.  
 
-### 9. Knock their socks off!  Find one other useful inference from the data that you feel Budweiser may be able to find value in.  You must convince them why it is important and back up your conviction with appropriate statistical evidence. 
+### Knock their socks off!  Find one other useful inference from the data that you feel Budweiser may be able to find value in.  You must convince them why it is important and back up your conviction with appropriate statistical evidence. 
