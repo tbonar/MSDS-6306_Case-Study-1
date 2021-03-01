@@ -67,7 +67,7 @@ ggplot(map.df, aes(x=long,y=lat,group=group))+
   scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+ggtitle("Breweries by State")+coord_map()
 ```
 
-### 2.   Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.  (RMD only, this does not need to be included in the presentation or the deck.)
+### Merge beer data with the breweries data. Print the first 6 observations and the last six observations to check the merged file.
 ```{r}
 # Join beer and breweries by common brewery identifier
 beerAndBreweries = merge(beers, breweries, by.x="Brewery_id", by.y="Brew_ID")
