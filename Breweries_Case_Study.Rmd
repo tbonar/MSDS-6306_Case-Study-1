@@ -224,6 +224,20 @@ classifications = knn(train[,c(2,3)], test[,c(2,3)], train$Type, k = strongK, pr
 table(classifications,test$Type)
 # Statistics behind classifications table
 confusionMatrix(table(classifications,test$Type))
+
+#Show scatterplot based on Type to observe visually the classifications knn may have done
+ggplot(alesAndIPAs2, aes(x=ABV, y=IBU, col = Type)) +
+  geom_point(shape = "diamond", size = 1.5) +
+  geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs")) +
+  labs(title = "Relationship Between ABV to IBU", 
+       subtitle = "Identifying Trends for Ales & IPAs")
+
+# Flip perspective of continuous variables, notice how trends collide between the two beer types
+ggplot(alesAndIPAs2, aes(x=IBU, y=ABV, col = Type)) +
+  geom_point(shape = "diamond", size = 1.5) +
+  geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs")) +
+  labs(title = "Relationship Between IBU to ABV", 
+       subtitle = "A Flipped Perspective")
 ```
 
 #### In addition, while you have decided to use KNN to investigate this relationship (KNN is required) you may also feel free to supplement your response to this question with any other methods or techniques you have learned.  Creativity and alternative solutions are always encouraged.  
