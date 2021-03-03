@@ -239,7 +239,3 @@ ggplot(alesAndIPAs2, aes(x=IBU, y=ABV, col = Type)) +
   labs(title = "Relationship Between IBU to ABV", 
        subtitle = "A Flipped Perspective")
 ```
-
-#### In addition, while you have decided to use KNN to investigate this relationship (KNN is required) you may also feel free to supplement your response to this question with any other methods or techniques you have learned.  Creativity and alternative solutions are always encouraged.  
-
-### Knock their socks off!  Find one other useful inference from the data that you feel Budweiser may be able to find value in.  You must convince them why it is important and back up your conviction with appropriate statistical evidence. 
