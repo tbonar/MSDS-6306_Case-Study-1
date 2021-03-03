@@ -22,6 +22,9 @@ library(maps)
 library(mapproj)
 library(stringr)
 library(tidyr)
+library(class)
+library(caret)
+library(e1071)
 ```
 
 ## Global Variable Setup & Cleanup
@@ -179,11 +182,48 @@ ggplot(beerAndBreweries2, aes(x=ABV, y=IBU)) +
 
 ### Budweiser would also like to investigate the difference with respect to IBU and ABV between IPAs (India Pale Ales) and other types of Ale (any beer with “Ale” in its name other than IPA).  You decide to use KNN classification to investigate this relationship.  Provide statistical evidence one way or the other. You can of course assume your audience is comfortable with percentages … KNN is very easy to understand conceptually.
 ```{r}
-#Filter for all styles that contain 'Ale' and create a new data frame.
-Ales <- beerAndBreweries2 %>% select(Style,ABV,IBU) %>%filter(stringr::str_detect(Style, 'Ale')) 
+#Filter for all styles that contain 'Ale' or 'India Pale Ale' and create a new data frame.
+alesAndIPAs <- beerAndBreweries2 %>% select(Style,ABV,IBU) %>% filter(str_detect(Style, 'Ale') | str_detect(Style, 'IPA'))
 
-#Filter for all styles that contain 'India Pale Ale' and create a new data frame.
-IndiaAles <- Ales %>%filter(stringr::str_detect(Style, 'India Pale Ale')) 
+# Make all Ales one type, and all IPAs as another type
+alesAndIPAs2 = mutate(alesAndIPAs, Type = ifelse(str_detect(Style, 'Ale'), 'Ale', 'IPA'))
+
+# Locate best k value for 70/30 split on knn
+splitPerc = .7
+# Loop for many k and the average of many training / test partition
+iterations = 500
+numks = 40
+masterAcc = matrix(nrow = iterations, ncol = numks)
+for(j in 1:iterations)
+{
+  accs = data.frame(accuracy = numeric(30), k = numeric(30))
+  trainIndices = sample(1:dim(alesAndIPAs2)[1],round(splitPerc * dim(alesAndIPAs2)[1]))
+  train = alesAndIPAs2[trainIndices,]
+  test = alesAndIPAs2[-trainIndices,]
+  for(i in 1:numks)
+  {
+    classifications = knn(train[,c(2,3)],test[,c(2,3)],train$Type, prob = TRUE, k=i)
+    table(classifications,test$Type)
+    CM = confusionMatrix(table(classifications,test$Type))
+    masterAcc[j,i] = CM$overall[1]
+  }
+}
+# Graph k-values mean accuracies to observe best k-value to use
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,numks,1),MeanAcc, type = "l",
+     main="Average Accuracy of k-values",
+     xlab = "k-values",
+     ylab = "Average Accuracy")
+
+# Grab most accurate k-value (i.e. the one with the highest average accuracy)
+strongK = which.max(MeanAcc)
+
+# Use KNN to classify beers that are IPAs vs Ales based on IBU and ABV.
+classifications = knn(train[,c(2,3)], test[,c(2,3)], train$Type, k = strongK, prob=T)
+# Demonstrate how knn classified the test set against the train set
+table(classifications,test$Type)
+# Statistics behind classifications table
+confusionMatrix(table(classifications,test$Type))
 ```
 
 #### In addition, while you have decided to use KNN to investigate this relationship (KNN is required) you may also feel free to supplement your response to this question with any other methods or techniques you have learned.  Creativity and alternative solutions are always encouraged.  
