@@ -11,10 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 ###
-To determine the make up of a new beer for Budwiser, an exploratory data analysis of beers and breweries from the United States was conducted.Comparing the Alcohol By Volume (ABV) and International Bitterness Unit (IBU) of each beer, a modern new beer was determined for Budwiser's upcoming luxury beer release. By analyzing the data, the goal was to create the perfect beer highlighted with natural flavors, a soaring ABV and a low IBU. Budweiser presents 'Q-Tine' its newest luxury beer. 
+# To determine the make up of a new beer for Budwiser, an exploratory data analysis of beers and breweries from the United States was conducted.Comparing the Alcohol By Volume 
+# (ABV) and International Bitterness Unit (IBU) of each beer, a modern new beer was determined for Budwiser's upcoming luxury beer release. By analyzing the data,
+# the goal was to create the perfect beer highlighted with natural flavors, a soaring ABV and a low IBU. Budweiser presents 'Q-Tine' its newest luxury beer. 
 ###
 
 ## Libraries & Package Setup
+#Multiple libraries was loaded to the file.
 ```{r}
 # Load APIs
 library(ggplot2)
@@ -38,12 +41,12 @@ beers = read.csv("Beers.csv")
 breweries$State <- str_replace_all(breweries$State, "(\\s+)", "")
 ```
 
-## Analysis
+## Data Analysis
 
 ### How many breweries are present in each state?
 ```{r}
 # Data tidying
-## Remove DC as its not a state but capitol
+## Due to Washington, DC not being a state, it has been removed from the data.
 breweriesStates = filter(breweries,!grepl('DC', State))
 
 # Data Transformation
@@ -53,7 +56,7 @@ stateLookup = data.frame(abb = state.abb, stateName = state.name)
 ## Merge stateLookup with breweriesMapData
 breweriesStates2 = merge(breweriesStates,stateLookup,by.x="State",by.y="abb")
 
-## count each occurrence of breweries in each state
+## Count each occurrence of breweries in each state
 breweriesMapData = count(breweriesStates2,stateName)
 ## remap columns for future merge of states and map
 colnames(breweriesMapData) = c("region","Breweries")
