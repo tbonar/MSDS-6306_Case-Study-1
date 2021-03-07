@@ -28,4 +28,6 @@ This project aims to analyze two CSV files, Beers.csv and Breweries.csv, to perf
 * Breweries_Case_Study.html
 * FinalEDA_20210222_DH_TB.pptx
 * InitalEDA_20210222_DH_TB.pptx
+* Case Study 1_ Domicia's Youtube 
+  * [![](http://img.youtube.com/vi/jktYz2ioSCI/0.jpg)](http://www.youtube.com/watch?v=jktYz2ioSCI "")
 
