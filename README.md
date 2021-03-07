@@ -24,4 +24,8 @@ This project aims to analyze two CSV files, Beers.csv and Breweries.csv, to perf
   * Dataset containing U.S. breweries regarding their Brew_ID, Name, City, and State
 
 # Output Files
-* something.html
+* Breweries_Case_Study.Rmd
+* Breweries_Case_Study.html
+* FinalEDA_20210222_DH_TB.pptx
+* InitalEDA_20210222_DH_TB.pptx
+
